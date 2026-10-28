@@ -49,7 +49,7 @@ etapa "6/6 Configuração"
 
 # Pergunta um valor e grava no .env (Enter mantém o valor atual)
 perguntar() {
-  local chave="$1" texto="$2" atual valor
+  local chave="$1" texto="$2" atual="" valor=""
   atual="$(grep -E "^$chave=" .env | cut -d= -f2- || true)"
   read -r -p "$texto [${atual:-vazio}]: " valor < /dev/tty || true
   if [ -n "$valor" ]; then
