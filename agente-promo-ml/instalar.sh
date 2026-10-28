@@ -36,10 +36,16 @@ cd "$APP"
 
 etapa "4/6 Instalando dependências e o Chrome (pode levar alguns minutos)"
 npm install --no-audit --no-fund --loglevel=error
-sudo npx --yes puppeteer browsers install-deps chrome >/dev/null 2>&1 \
-  || sudo DEBIAN_FRONTEND=noninteractive apt-get install -y libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
-       libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2 libpango-1.0-0 \
-       libcairo2 libnss3 >/dev/null
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y libglib2.0-0 libnss3 libnspr4 libatk1.0-0 \
+  libatk-bridge2.0-0 libdbus-1-3 libcups2 libxkbcommon0 libatspi2.0-0 libxcomposite1 libxdamage1 libxfixes3 \
+  libxrandr2 libgbm1 libcairo2 libpango-1.0-0 libasound2 libx11-6 libx11-xcb1 libxcb1 libxext6 libexpat1 \
+  fonts-liberation >/dev/null
+CHROME_BIN="$(ls -d "$HOME"/.cache/puppeteer/chrome/*/chrome-linux64/chrome 2>/dev/null | tail -1)"
+if [ -z "$CHROME_BIN" ] || ldd "$CHROME_BIN" | grep -q "not found"; then
+  echo "ERRO: o Chrome não ficou pronto. Mande um print desta tela."; ldd "${CHROME_BIN:-/dev/null}" | grep "not found" || true
+  exit 1
+fi
+echo "Chrome OK"
 
 etapa "5/6 Gerenciador pm2 (mantém o agente rodando 24h)"
 command -v pm2 >/dev/null || sudo npm install -g pm2 --loglevel=error
