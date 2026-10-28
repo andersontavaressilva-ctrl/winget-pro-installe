@@ -1,0 +1,22 @@
+{
+  "name": "agente-promo-ml",
+  "version": "1.0.0",
+  "description": "Agente que busca promoções no Mercado Livre e posta em um grupo do WhatsApp com seu link de afiliado",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "once": "node src/index.js --once",
+    "dry-run": "node src/index.js --once --dry-run",
+    "list-groups": "node src/index.js --list-groups",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.26.0"
+  }
+}
