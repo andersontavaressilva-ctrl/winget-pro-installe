@@ -18,6 +18,7 @@ mexer em faturamento ou enviar mensagens no WhatsApp. Nunca colar o Client Secre
 | 9 | Teste `npm run dry-run` com dados reais | ⏳ |
 | 10 | 1 post de teste no grupo (`npm run once`) e conferir clique no painel de afiliados | ⏳ |
 | 11 | Ligar 24h com pm2 | ⏳ |
+| 12 | Limpeza final do repositório e da VM | ⏳ |
 
 ## 3. Alerta de orçamento (console.cloud.google.com)
 Faturamento → Orçamentos e alertas → Criar orçamento → nome `limite-agente`, todos os projetos/serviços →
@@ -54,6 +55,13 @@ npm run dry-run        # ver as ofertas e notas; ajustar filtros no .env se vier
 npm run once           # posta 1 ciclo no grupo (confirmar com o Anderson antes)
 pm2 start src/index.js --name promo && pm2 save && pm2 startup   # rodar o comando que o pm2 mostrar
 ```
+
+## 12. Limpeza final (pedido do Anderson)
+No repositório (branch `claude/mercado-livre-promo-agent-d2nz05`), depois que tudo funcionar:
+- apagar este `PLANO-CONFIGURACAO.md`;
+- juntar o `VPS-GRATIS.md` no `README.md` só com o caminho usado (Google Cloud) e tirar a parte da Oracle;
+- manter a pasta `test/`; não mexer em `index.html` nem `Instalador.exe`.
+Na VM: apagar sobras de instalação/teste, **sem** apagar `.env`, `.wwebjs_auth/` nem `data/`.
 
 ## Riscos conhecidos
 - **Busca por termos da API do ML** responde 403 para muitos apps desde 2025. O agente detecta e usa os
