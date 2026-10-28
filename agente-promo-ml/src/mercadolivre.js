@@ -1,7 +1,7 @@
 import { setEnvValue } from './envfile.js';
 
 // Cliente da API oficial do Mercado Livre (https://developers.mercadolivre.com.br)
-const API = 'https://api.mercadolibre.com';
+const API = process.env.ML_API_BASE || 'https://api.mercadolibre.com';
 
 let token = null;
 let tokenExpiresAt = 0;
@@ -85,21 +85,105 @@ export async function search(ml, { q, category }) {
   return (data.results || []).map(normalizeItem);
 }
 
+// Executa tarefas assíncronas com no máximo `limit` ao mesmo tempo.
+async function mapLimit(list, limit, fn) {
+  const out = [];
+  let i = 0;
+  const worker = async () => {
+    while (i < list.length) {
+      const idx = i++;
+      try { out[idx] = await fn(list[idx]); } catch (err) { out[idx] = null; console.error(`[ML] ${err.message}`); }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, list.length) }, worker));
+  return out.filter(Boolean);
+}
+
+// Se o anúncio não informa o preço original, consulta os preços (promoção x preço normal).
+async function fillOriginalPrice(ml, item) {
+  if (item.originalPrice) return item;
+  const data = await apiGet(ml, `/items/${item.id}/prices`).catch(() => null);
+  const promo = data?.prices?.find((p) => p.type === 'promotion' && p.regular_amount);
+  if (promo) {
+    item.price = promo.amount;
+    item.originalPrice = promo.regular_amount;
+    item.discount = Math.round((1 - promo.amount / promo.regular_amount) * 100);
+  }
+  return item;
+}
+
+// Mais vendidos de uma categoria (top 20 do Mercado Livre), com preço do anúncio vencedor.
+export async function bestSellers(ml, category) {
+  const data = await apiGet(ml, `/highlights/${ml.site}/category/${category}`);
+  const entries = data.content || [];
+
+  const itemIds = entries.filter((e) => e.type === 'ITEM').map((e) => e.id);
+  const products = entries.filter((e) => e.type === 'PRODUCT');
+  const positionOf = new Map(entries.map((e) => [e.id, e.position]));
+  const results = [];
+
+  for (let k = 0; k < itemIds.length; k += 20) {
+    const batch = await apiGet(ml, `/items?ids=${itemIds.slice(k, k + 20).join(',')}`);
+    for (const r of batch) {
+      if (r.code === 200 && r.body) results.push({ ...normalizeItem(r.body), bestSellerPosition: positionOf.get(r.body.id) });
+    }
+  }
+
+  results.push(...await mapLimit(products, 5, async (p) => {
+    const [product, offers] = await Promise.all([
+      apiGet(ml, `/products/${p.id}`),
+      apiGet(ml, `/products/${p.id}/items?limit=1`),
+    ]);
+    const offer = offers.results?.[0];
+    if (!offer) return null;
+    return {
+      ...normalizeItem({
+        ...offer,
+        id: offer.item_id,
+        title: product.name,
+        permalink: product.permalink || `https://www.mercadolivre.com.br/p/${p.id}`,
+        thumbnail: product.pictures?.[0]?.url,
+      }),
+      bestSellerPosition: p.position,
+    };
+  }));
+
+  return mapLimit(results, 5, (item) => fillOriginalPrice(ml, item));
+}
+
+let searchBlocked = false;
+
 // Executa todas as buscas configuradas e remove duplicados.
 export async function fetchDeals(ml) {
-  const queries = [
-    ...ml.searchTerms.map((q) => ({ q })),
-    ...ml.categories.map((category) => ({ category })),
-  ];
-  if (!queries.length) throw new Error('Configure SEARCH_TERMS ou SEARCH_CATEGORIES no .env');
+  if (!ml.searchTerms.length && !ml.categories.length) {
+    throw new Error('Configure SEARCH_TERMS ou SEARCH_CATEGORIES no .env');
+  }
   await getToken(ml); // falha logo se as credenciais estiverem erradas
 
   const byId = new Map();
-  for (const query of queries) {
+  const add = (items) => items.forEach((i) => byId.set(i.id, { ...byId.get(i.id), ...i }));
+
+  // 1) Busca por termos. O ML bloqueou essa rota (403) para muitos apps;
+  //    se acontecer, desligamos e seguimos só com os mais vendidos.
+  for (const q of searchBlocked ? [] : ml.searchTerms) {
     try {
-      for (const item of await search(ml, query)) byId.set(item.id, item);
+      add(await search(ml, { q }));
     } catch (err) {
-      console.error(`[ML] Erro na busca ${JSON.stringify(query)}: ${err.message}`);
+      if (/-> 403/.test(err.message)) {
+        searchBlocked = true;
+        console.error('[ML] Busca por termos bloqueada pelo Mercado Livre (403). Usando só os mais vendidos por categoria.');
+        break;
+      }
+      console.error(`[ML] Erro na busca "${q}": ${err.message}`);
+    }
+  }
+
+  // 2) Mais vendidos por categoria
+  for (const category of ml.categories) {
+    try {
+      add(await bestSellers(ml, category));
+    } catch (err) {
+      console.error(`[ML] Erro nos mais vendidos de ${category}: ${err.message}`);
     }
   }
   return [...byId.values()];

@@ -11,16 +11,19 @@ APP="$DIR/agente-promo-ml"
 etapa() { echo -e "\n\033[1;32m==> $*\033[0m"; }
 
 etapa "1/6 Memória extra (swap de 2 GB)"
-if ! swapon --show | grep -q /swapfile; then
-  sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile
-  sudo mkswap /swapfile >/dev/null && sudo swapon /swapfile
-  grep -q /swapfile /etc/fstab || echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab >/dev/null
+if ! swapon --show 2>/dev/null | grep -q /swapfile; then
+  if sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile >/dev/null && sudo swapon /swapfile; then
+    grep -q /swapfile /etc/fstab || echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab >/dev/null
+  else
+    echo "Aviso: não foi possível criar o swap (seguindo mesmo assim)."
+  fi
 fi
 
 etapa "2/6 Node.js 20 e git"
 if ! command -v node >/dev/null || [ "$(node -v | cut -d. -f1 | tr -d v)" -lt 18 ]; then
   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - >/dev/null
 fi
+sudo apt-get update -qq
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs git >/dev/null
 
 etapa "3/6 Baixando o agente"

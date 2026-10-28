@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 
 // Grava/atualiza uma chave no arquivo .env
-export function setEnvValue(key, value, file = '.env') {
+export function setEnvValue(key, value, file = process.env.ENV_FILE || '.env') {
   let text = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
   const line = `${key}=${value}`;
   const re = new RegExp(`^${key}=.*$`, 'm');

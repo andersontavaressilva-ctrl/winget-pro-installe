@@ -9,8 +9,12 @@ export function scoreItem(item) {
   score += Math.min(item.discount, 70) / 2;
   if (item.discount >= 40) reasons.push(`${item.discount}% OFF`);
 
-  // Prova social: quantidade vendida (até 20 pts)
-  if (item.soldQuantity != null) {
+  // Prova social: ranking de mais vendidos ou quantidade vendida (até 20 pts)
+  if (item.bestSellerPosition) {
+    const p = item.bestSellerPosition;
+    score += p <= 5 ? 20 : p <= 10 ? 16 : 12;
+    reasons.push(`top ${p} mais vendidos`);
+  } else if (item.soldQuantity != null) {
     const s = item.soldQuantity;
     score += s >= 5000 ? 20 : s >= 1000 ? 16 : s >= 500 ? 12 : s >= 100 ? 8 : s >= 25 ? 4 : 0;
     if (s >= 500) reasons.push(`+${s} vendidos`);

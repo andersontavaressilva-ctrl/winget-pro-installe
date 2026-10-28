@@ -20,7 +20,8 @@ export function buildMessage(item, link) {
   if (item.freeShipping) extras.push('🚚 Frete grátis');
   if (item.full) extras.push('⚡ Envio Full');
   if (item.officialStore) extras.push('🏬 Loja oficial');
-  if (item.soldQuantity >= 100) extras.push(`🛒 +${item.soldQuantity} vendidos`);
+  if (item.bestSellerPosition) extras.push(`🏆 ${item.bestSellerPosition}º mais vendido`);
+  else if (item.soldQuantity >= 100) extras.push(`🛒 +${item.soldQuantity} vendidos`);
   if (item.rating) extras.push(`⭐ ${item.rating.toFixed(1)}`);
   if (extras.length) lines.push('', extras.join('  |  '));
 
