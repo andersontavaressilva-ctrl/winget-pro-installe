@@ -18,6 +18,17 @@
 2. *Keychain* → **+ → Import key** → escolha o arquivo `.key` baixado.
 3. *Hosts* → **+**: Address = IP público, Username = `ubuntu`, Key = a chave importada. Conecte.
 
+## Alternativa: Google Cloud (e2-micro grátis)
+1. Acesse <https://console.cloud.google.com> com sua conta Google → **Ativar avaliação gratuita**
+   (pede cartão só para verificar; ganha créditos de teste e o e2-micro continua grátis depois).
+2. Menu ☰ → **Compute Engine → Instâncias de VM** → **Ativar API** (espere 1-2 min) → **Criar instância**.
+3. Configure **exatamente** assim (fora disso pode gerar cobrança):
+   - **Região:** `us-central1` (Iowa), `us-east1` ou `us-west1`
+   - **Tipo de máquina:** série **E2** → **e2-micro**
+   - **Disco de inicialização → Mudar:** **Ubuntu 22.04 LTS** (x86/64), tipo **Disco permanente padrão**, **30 GB**
+4. **Criar**. Na lista de VMs, toque em **SSH** — abre um terminal no próprio navegador (não precisa do Termius).
+5. Siga do passo 4 em diante. Para colar comandos, segure o dedo na tela do terminal → Colar.
+
 ## 4. Instalar o agente (copie e cole no Termius)
 ```bash
 # memória extra (o servidor grátis tem só 1 GB)
