@@ -3,10 +3,14 @@ import qrcode from 'qrcode-terminal';
 
 const { Client, LocalAuth, MessageMedia } = wweb;
 
-// Conecta no WhatsApp Web (escaneie o QR Code na primeira vez; a sessão fica salva).
+// Conecta no WhatsApp Web. Na primeira vez: escaneie o QR Code ou, se
+// WHATSAPP_PHONE_NUMBER estiver no .env, digite o código de pareamento no celular.
+// A sessão fica salva.
 export async function connectWhatsApp() {
+  const phoneNumber = (process.env.WHATSAPP_PHONE_NUMBER || '').replace(/\D/g, '');
   const client = new Client({
     authStrategy: new LocalAuth({ dataPath: './.wwebjs_auth' }),
+    ...(phoneNumber ? { pairWithPhoneNumber: { phoneNumber, showNotification: true } } : {}),
     puppeteer: {
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -17,6 +21,10 @@ export async function connectWhatsApp() {
   client.on('qr', (qr) => {
     console.log('\nEscaneie o QR Code abaixo no WhatsApp (Aparelhos conectados > Conectar aparelho):\n');
     qrcode.generate(qr, { small: true });
+  });
+  client.on('code', (code) => {
+    console.log(`\nCódigo de pareamento: ${code}`);
+    console.log('No celular: WhatsApp > Aparelhos conectados > Conectar aparelho > Conectar com número de telefone\n');
   });
   client.on('auth_failure', (m) => console.error('[WhatsApp] Falha na autenticação:', m));
   client.on('disconnected', (r) => console.error('[WhatsApp] Desconectado:', r));

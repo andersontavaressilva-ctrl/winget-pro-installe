@@ -69,7 +69,12 @@ Mostra no terminal as mensagens que seriam enviadas, com a nota de cada produto.
 ```bash
 npm run list-groups
 ```
-Na primeira vez aparece um **QR Code**: no celular, abra WhatsApp → *Aparelhos conectados* →
+Só tem o celular? Preencha `WHATSAPP_PHONE_NUMBER` no `.env` e, em vez do QR Code, aparece um
+**código de pareamento**: WhatsApp → *Aparelhos conectados* → *Conectar aparelho* →
+*Conectar com número de telefone*. Para rodar 24h numa VPS gratuita pelo celular, veja
+[`VPS-GRATIS.md`](VPS-GRATIS.md).
+
+Senão, na primeira vez aparece um **QR Code**: no celular, abra WhatsApp → *Aparelhos conectados* →
 *Conectar um aparelho*. A sessão fica salva em `.wwebjs_auth/`. Copie o nome (ou ID) do grupo para
 `WHATSAPP_GROUP_NAME` (ou `WHATSAPP_GROUP_ID`).
 
