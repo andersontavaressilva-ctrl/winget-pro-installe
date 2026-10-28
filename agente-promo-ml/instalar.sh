@@ -69,6 +69,7 @@ cat <<FIM
 
 Próximos passos:
   cd $APP
+  npm run ml-login        # autoriza o agente na sua conta do Mercado Livre
   npm run list-groups     # mostra o CÓDIGO DE PAREAMENTO -> digite no WhatsApp
                           # (Aparelhos conectados > Conectar aparelho > Conectar com número de telefone)
   npm run dry-run         # testa a busca de promoções sem postar

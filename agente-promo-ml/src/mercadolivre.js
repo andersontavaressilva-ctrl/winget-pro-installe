@@ -1,3 +1,5 @@
+import { setEnvValue } from './envfile.js';
+
 // Cliente da API oficial do Mercado Livre (https://developers.mercadolivre.com.br)
 const API = 'https://api.mercadolibre.com';
 
@@ -28,8 +30,12 @@ async function getToken(ml) {
 
   token = data.access_token;
   tokenExpiresAt = Date.now() + (data.expires_in || 21600) * 1000;
-  // O ML devolve um novo refresh token a cada renovação; o antigo deixa de valer.
-  if (data.refresh_token) ml.refreshToken = data.refresh_token;
+  // O ML devolve um novo refresh token a cada renovação e o antigo deixa de
+  // valer, então salvamos no .env para continuar funcionando após reiniciar.
+  if (data.refresh_token && data.refresh_token !== ml.refreshToken) {
+    ml.refreshToken = data.refresh_token;
+    setEnvValue('ML_REFRESH_TOKEN', data.refresh_token);
+  }
   return token;
 }
 

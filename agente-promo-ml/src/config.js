@@ -9,6 +9,7 @@ export const config = {
     clientId: process.env.ML_CLIENT_ID || '',
     clientSecret: process.env.ML_CLIENT_SECRET || '',
     refreshToken: process.env.ML_REFRESH_TOKEN || '',
+    redirectUri: process.env.ML_REDIRECT_URI || 'https://www.google.com/',
     site: process.env.ML_SITE || 'MLB',
     searchTerms: list(process.env.SEARCH_TERMS),
     categories: list(process.env.SEARCH_CATEGORIES),

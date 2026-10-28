@@ -8,6 +8,7 @@
     "start": "node src/index.js",
     "once": "node src/index.js --once",
     "dry-run": "node src/index.js --once --dry-run",
+    "ml-login": "node src/ml-login.js",
     "list-groups": "node src/index.js --list-groups",
     "test": "node --test test/*.test.js"
   },
