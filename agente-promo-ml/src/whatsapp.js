@@ -142,7 +142,25 @@ export async function createGroup(sock, name, members) {
   return { chat: { sock, id: meta.id, name: meta.subject, size: meta.participants.length }, invite };
 }
 
+// A chave de segredo entre o robô e o celular do Anderson às vezes se embaralha
+// e as mensagens para ele ficam "Aguardando mensagem" (o grupo não é afetado).
+// Antes de cada mensagem para ele, o robô joga fora essa chave: o WhatsApp
+// então entrega uma nova, que o celular sempre consegue abrir.
+async function freshKeyWithPhone(sock) {
+  const users = [sock.user.id, sock.user.lid].filter(Boolean).map((j) => j.split(/[:@]/)[0]);
+  const myDevice = sock.user.id.split('@')[0].split(':')[1];
+  const ids = fs.readdirSync(AUTH_DIR)
+    .filter((f) => f.startsWith('session-') && f.endsWith('.json'))
+    .map((f) => f.slice('session-'.length, -'.json'.length))
+    .filter((id) => {
+      const [user, device] = id.split('.');
+      return users.includes(user.split('_')[0]) && device !== myDevice;
+    });
+  if (ids.length) await sock.authState.keys.set({ session: Object.fromEntries(ids.map((id) => [id, null])) });
+}
+
 export async function sendToSelf(sock, text) {
+  await freshKeyWithPhone(sock).catch((e) => console.error(`[WhatsApp] Não consegui renovar a chave: ${e.message}`));
   return remember(await sock.sendMessage(jidNormalizedUser(sock.user.id), { text }));
 }
 
@@ -161,6 +179,7 @@ export async function postDeal(chat, text, image) {
 // Manda uma imagem com legenda para o próprio WhatsApp do Anderson (conversa "você").
 export async function sendImageToSelf(sock, text, image) {
   const me = jidNormalizedUser(sock.user.id);
+  await freshKeyWithPhone(sock).catch((e) => console.error(`[WhatsApp] Não consegui renovar a chave: ${e.message}`));
   if (!image) return remember(await sock.sendMessage(me, { text }));
   return remember(await sock.sendMessage(me, { image: Buffer.isBuffer(image) ? image : { url: image }, caption: text }));
 }
