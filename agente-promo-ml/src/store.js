@@ -12,6 +12,9 @@ export function createStore(file = './data/postados.json') {
       const t = data[id];
       return Boolean(t) && Date.now() - t < days * 86_400_000;
     },
+    lastPostedAt() {
+      return Math.max(0, ...Object.values(data));
+    },
     markPosted(id) {
       data[id] = Date.now();
       fs.writeFileSync(file, JSON.stringify(data, null, 2));
