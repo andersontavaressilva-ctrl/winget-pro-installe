@@ -22,7 +22,7 @@ function insidePostingHours() {
 // Próximas ofertas da fila: melhor nota primeiro, sem repetir produto já postado.
 function nextDeals(queue, store, n) {
   const pending = queue.all().filter((i) => {
-    if (!store.wasPostedRecently(i.id, config.schedule.repostAfterDays)) return true;
+    if (!store.wasPostedRecently(i, config.schedule.repostAfterDays)) return true;
     queue.remove(i.id);
     return false;
   });
@@ -31,7 +31,7 @@ function nextDeals(queue, store, n) {
 
 // Quantas ofertas da lista ainda podem ser postadas (passam nos filtros e não repetem).
 function pendingCount(queue, store) {
-  const fresh = queue.all().filter((i) => !store.wasPostedRecently(i.id, config.schedule.repostAfterDays));
+  const fresh = queue.all().filter((i) => !store.wasPostedRecently(i, config.schedule.repostAfterDays));
   return rankDeals(fresh, config.filters).length;
 }
 
@@ -130,7 +130,7 @@ async function runCycle({ getChat, store, queue, notify, status }) {
     }
     const arte = await criarArte(item);
     await postDeal(chat, text, arte || item.thumbnail);
-    store.markPosted(item.id);
+    store.markPosted(item);
     queue.remove(item.id);
     log(`Postado: ${item.title} (nota ${item.score})`);
     if (status) await postToStatus(status, text, arte || item.thumbnail);

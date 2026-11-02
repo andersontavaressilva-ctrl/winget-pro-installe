@@ -55,7 +55,8 @@ export const config = {
     delayBetweenPostsSec: num(process.env.DELAY_BETWEEN_POSTS_SECONDS, 90),
     startHour: num(process.env.POST_START_HOUR, 8),
     endHour: num(process.env.POST_END_HOUR, 22),
-    repostAfterDays: num(process.env.REPOST_AFTER_DAYS, 7),
+    // Produto repetido volta depois desses dias (ou antes, se o preço baixar).
+    repostAfterDays: num(process.env.REPOST_AFTER_DAYS, 2),
     // Hora do lembrete de bom dia para puxar as ofertas (24h).
     reminderHour: num(process.env.REMINDER_HOUR, 8),
     // Enquanto for "false", o robô só mostra os posts no registro (modo teste).

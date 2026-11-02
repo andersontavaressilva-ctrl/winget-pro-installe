@@ -1,22 +1,26 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-// Guarda quais produtos já foram postados para não repetir.
+// Guarda quais produtos já foram postados (quando e por quanto) para não repetir.
 export function createStore(file = './data/postados.json') {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   let data = {};
   try { data = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { /* primeiro uso */ }
+  // Registros antigos guardavam só a hora do post, sem o preço.
+  const get = (id) => (typeof data[id] === 'number' ? { at: data[id] } : data[id]);
 
   return {
-    wasPostedRecently(id, days) {
-      const t = data[id];
-      return Boolean(t) && Date.now() - t < days * 86_400_000;
+    // Produto repetido só volta depois de "days" dias, ou antes disso se o preço baixou.
+    wasPostedRecently(item, days) {
+      const rec = get(item.id);
+      if (!rec || Date.now() - rec.at >= days * 86_400_000) return false;
+      return !(rec.price && item.price < rec.price);
     },
     lastPostedAt() {
-      return Math.max(0, ...Object.values(data));
+      return Math.max(0, ...Object.keys(data).map((id) => get(id).at));
     },
-    markPosted(id) {
-      data[id] = Date.now();
+    markPosted(item) {
+      data[item.id] = { at: Date.now(), price: item.price };
       fs.writeFileSync(file, JSON.stringify(data, null, 2));
     },
   };
