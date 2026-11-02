@@ -1,7 +1,7 @@
 // Botão de favorito do Chrome: "Mandar ofertas pro robô".
 // O Anderson clica nele com o painel de afiliados aberto (filtro "Mais vendidos").
 // Ele lê os produtos da tela, abre o "Compartilhar" de cada um (que gera o link
-// meli.la da conta dele) e manda tudo para o robô neste computador.
+// meli.la da conta dele) e manda tudo para o robô, que pode estar em outro computador da casa.
 //
 // A função abaixo roda DENTRO da página do Mercado Livre, não no Node.
 
@@ -110,11 +110,12 @@ async function mandarOfertas(ROBO, MAX) {
     janela.postMessage({ tipo: 'ofertas', itens }, ROBO);
     await sleep(500);
   }
-  if (!ok) alert('Não consegui entregar as ofertas para o robô. Ele está ligado neste computador?');
+  if (!ok) alert('Não consegui entregar as ofertas para o robô. O computador do robô está ligado?');
 }
 /* eslint-enable no-undef */
 
-export function bookmarkletHref(port, max = 20) {
-  const code = `(${mandarOfertas.toString()})('http://127.0.0.1:${port}', ${max})`;
+// robo: endereço do robô, ex.: http://192.168.3.158:3999
+export function bookmarkletHref(robo, max = 20) {
+  const code = `(${mandarOfertas.toString()})(${JSON.stringify(robo)}, ${max})`;
   return 'javascript:' + encodeURIComponent(code);
 }

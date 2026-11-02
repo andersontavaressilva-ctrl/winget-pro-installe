@@ -63,7 +63,9 @@ export const config = {
     postingEnabled: bool(process.env.POSTING_ENABLED),
   },
   server: {
-    // Porta do receptor do botão de favorito (só neste computador).
+    // Porta do receptor do botão de favorito.
     port: num(process.env.SERVER_PORT, 3999),
+    // 0.0.0.0 = aceita os computadores da rede de casa; 127.0.0.1 = só este computador.
+    host: process.env.SERVER_HOST || '0.0.0.0',
   },
 };

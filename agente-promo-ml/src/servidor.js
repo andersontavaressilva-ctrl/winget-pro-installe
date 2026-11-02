@@ -1,8 +1,9 @@
 import http from 'node:http';
+import os from 'node:os';
 import { bookmarkletHref } from './botao-favorito.js';
 
-// Servidor pequeno, só para este computador (localhost), que recebe as ofertas
-// mandadas pelo botão de favorito do Chrome.
+// Servidor pequeno, só para a rede de casa, que recebe as ofertas mandadas pelo
+// botão de favorito do Chrome (de qualquer computador da casa).
 //   /         página para arrastar o botão para a barra de favoritos
 //   /receber  janelinha que o botão abre para entregar as ofertas
 //   /fila     (POST) grava as ofertas na lista do robô
@@ -41,17 +42,36 @@ function limpar(i) {
   };
 }
 
-export function startServer({ port, queue, onReceive = () => {}, log = console.log }) {
+// Endereços da rede de casa (e o próprio computador). Quem vem de fora é recusado.
+const REDE_DE_CASA = /^(::ffff:)?(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)|^::1$/;
+
+// Endereço deste computador na rede, para mostrar no registro.
+function enderecoNaRede() {
+  for (const lista of Object.values(os.networkInterfaces())) {
+    for (const a of lista || []) if (a.family === 'IPv4' && !a.internal && /^(10|192\.168|172)\./.test(a.address)) return a.address;
+  }
+  return '127.0.0.1';
+}
+
+export function startServer({ port, host = '0.0.0.0', queue, onReceive = () => {}, log = console.log }) {
   const server = http.createServer((req, res) => {
+    if (!REDE_DE_CASA.test(req.socket.remoteAddress || '')) {
+      res.writeHead(403);
+      res.end();
+      return;
+    }
     const url = new URL(req.url, `http://127.0.0.1:${port}`);
 
     if (req.method === 'GET' && url.pathname === '/') {
+      // O botão aponta para o mesmo endereço por onde esta página foi aberta
+      // (127.0.0.1 neste computador, o IP dele nos outros computadores da casa).
+      const robo = /^[\w.\-]+:\d+$/.test(req.headers.host || '') ? `http://${req.headers.host}` : `http://127.0.0.1:${port}`;
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(page('Robô de ofertas', `<h2>🤖 Robô de ofertas</h2>
 <p>Ofertas esperando para postar: <b>${queue.size()}</b></p>
 <p><b>Instalar o botão (uma vez só):</b> arraste o botão azul abaixo para a <b>barra de favoritos</b> do Chrome
 (se ela não aparece, aperte <b>Ctrl+Shift+B</b>).</p>
-<p><a class="botao" href="${bookmarkletHref(port)}">📦 Mandar ofertas pro robô</a></p>
+<p><a class="botao" href="${bookmarkletHref(robo)}">📦 Mandar ofertas pro robô</a></p>
 <p><b>Uso (1 vez por dia):</b></p><ol>
 <li>Abra o <a href="${ML}/afiliados/hub" target="_blank">painel de afiliados</a> e ligue o filtro <b>Mais vendidos</b>.</li>
 <li>Clique no favorito <b>📦 Mandar ofertas pro robô</b> e espere uns 30 segundos.</li>
@@ -103,7 +123,7 @@ window.addEventListener('message', async (e) => {
     res.writeHead(404);
     res.end();
   });
-  // Só aceita conexões deste próprio computador.
-  server.listen(port, '127.0.0.1', () => log(`Botão do Chrome: abra http://127.0.0.1:${port} para instalar.`));
+  // Escuta a rede de casa; o filtro lá em cima recusa quem vem da internet.
+  server.listen(port, host, () => log(`Botão do Chrome: abra http://${host === '127.0.0.1' ? host : enderecoNaRede()}:${port} para instalar.`));
   return server;
 }

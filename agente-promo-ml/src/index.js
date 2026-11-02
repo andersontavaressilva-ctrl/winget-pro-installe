@@ -209,7 +209,7 @@ async function main() {
     process.exit(0);
   }
 
-  startServer({ port: config.server.port, queue, log });
+  startServer({ port: config.server.port, host: config.server.host, queue, log });
   if (!config.schedule.postingEnabled) log('MODO TESTE: os posts aparecem só aqui no registro, nada vai para o grupo.');
   // Confere a cada minuto. O espaço entre posts é o tempo que falta até o fim
   // do horário dividido pelas ofertas que ainda tem na lista, assim elas se
