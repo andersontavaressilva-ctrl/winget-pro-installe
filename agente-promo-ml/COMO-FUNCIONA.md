@@ -15,8 +15,9 @@ Num computador Windows da casa do Anderson, na pasta `C:\robo-ofertas`
 O Mercado Livre bloqueia: API de busca (403), login em navegador controlado por robô
 ("não confiável") e visitas do robô às páginas de produto (pede verificação). **Não contornar.**
 Por isso as ofertas vêm de um clique do Anderson no navegador dele:
-1. O robô sobe uma página em `http://127.0.0.1:3999` com o favorito **"📦 Mandar ofertas pro robô"**
-   (`src/botao-favorito.js`, `src/servidor.js`).
+1. O robô sobe uma página em `http://192.168.3.158:3999` (ou `http://127.0.0.1:3999` no próprio PC)
+   com o favorito **"📦 Mandar ofertas pro robô"** (`src/botao-favorito.js`, `src/servidor.js`).
+   Qualquer computador da rede de casa pode instalar o favorito por esse endereço; quem vem de fora é recusado.
 2. Uma vez por dia (lembrete às 8h no WhatsApp dele), o Anderson abre o painel de afiliados,
    liga o filtro **Mais vendidos** e clica no favorito.
 3. O favorito clica em "Compartilhar" de cada produto, pega o link curto **meli.la** da conta dele,
@@ -25,7 +26,8 @@ Por isso as ofertas vêm de um clique do Anderson no navegador dele:
 ## Como posta
 - `src/index.js` confere a cada minuto. Das 8h às 22h, divide o tempo que falta pelas ofertas da lista
   (entre 20 e 120 min por post). O primeiro do dia sai às 8h. Religar não gera posts colados.
-- Escolhe a melhor oferta pela nota (`src/scorer.js`, `MIN_SCORE`), sem repetir produto (`data/postados.json`).
+- Escolhe a melhor oferta pela nota (`src/scorer.js`, `MIN_SCORE`), sem repetir produto por 2 dias,
+  a não ser que o preço tenha baixado (`data/postados.json` guarda quando e por quanto postou).
 - Texto no modelo que o Anderson mandou (`src/message.js`).
 - Arte 1080x1080 azul, com pontos fortes tirados do nome do produto no lugar do preço
   (`src/arte.js`, `src/caracteristicas.js`). É desenhada no Chrome sem abrir o Mercado Livre.
