@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { config } from './config.js';
-import { rankDeals } from './scorer.js';
+import { rankDeals, passesFilters } from './scorer.js';
 import { buildMessage } from './message.js';
 import { createStore } from './store.js';
 import { createQueue } from './fila.js';
@@ -33,6 +33,37 @@ function nextDeals(queue, store, n) {
 function pendingCount(queue, store) {
   const fresh = queue.all().filter((i) => !store.wasPostedRecently(i, config.schedule.repostAfterDays));
   return rankDeals(fresh, config.filters).length;
+}
+
+// Por que uma oferta da lista não pode ser postada.
+function motivoFora(item, store) {
+  const f = config.filters;
+  if (store.wasPostedRecently(item, config.schedule.repostAfterDays)) return 'já postadas há pouco tempo';
+  if (item.discount < f.minDiscount) return `com menos de ${f.minDiscount}% de desconto`;
+  if (!passesFilters(item, f)) return 'fora das regras de preço e desconto';
+  return 'com nota baixa';
+}
+
+// Resumo para o Anderson: todas as ofertas que podem ser postadas e quantas ficaram de fora.
+function resumoDaLista(queue, store) {
+  const todas = queue.all();
+  const prontas = rankDeals(todas.filter((i) => !store.wasPostedRecently(i, config.schedule.repostAfterDays)), config.filters);
+  const ids = new Set(prontas.map((i) => i.id));
+  const motivos = {};
+  for (const i of todas) {
+    if (ids.has(i.id)) continue;
+    const m = motivoFora(i, store);
+    motivos[m] = (motivos[m] || 0) + 1;
+  }
+  const preco = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const linhas = [`📋 *Ofertas conferidas*\n\n✅ *Podem ser postadas: ${prontas.length}*`];
+  prontas.forEach((i, n) => linhas.push(`${n + 1}. ${i.title.slice(0, 45)} - ${preco(i.price)} (${i.discount}% OFF)`));
+  const fora = todas.length - prontas.length;
+  if (fora) {
+    linhas.push(`\n🚫 *Ficaram de fora: ${fora}*`);
+    for (const [m, q] of Object.entries(motivos)) linhas.push(`• ${q} ${m}`);
+  }
+  return linhas.join('\n');
 }
 
 // Minutos entre um post e outro para a lista durar até o fim do horário.
@@ -209,7 +240,19 @@ async function main() {
     process.exit(0);
   }
 
-  startServer({ port: config.server.port, host: config.server.host, queue, log });
+  // Espera um pouco depois de cada clique no favorito: se o Anderson clicar em
+  // várias páginas seguidas, chega um resumo só.
+  let resumoTimer;
+  const agendarResumo = () => {
+    if (!notify) return;
+    clearTimeout(resumoTimer);
+    resumoTimer = setTimeout(() => {
+      notify(resumoDaLista(queue, store))
+        .then(() => log('Resumo das ofertas enviado.'))
+        .catch((e) => log('Não consegui mandar o resumo:', e.message));
+    }, 90_000);
+  };
+  startServer({ port: config.server.port, host: config.server.host, queue, onReceive: agendarResumo, log });
   if (!config.schedule.postingEnabled) log('MODO TESTE: os posts aparecem só aqui no registro, nada vai para o grupo.');
   // Confere a cada minuto. O espaço entre posts é o tempo que falta até o fim
   // do horário dividido pelas ofertas que ainda tem na lista, assim elas se
@@ -217,6 +260,12 @@ async function main() {
   // Conta a partir do último post de verdade: religar o robô não gera posts colados.
   let lastCycle = store.lastPostedAt();
   let lastLoggedCount = null;
+  // Avisa uma vez quando a lista está acabando; volta a valer quando a lista enche de novo.
+  // Fica num arquivo, para religar o robô não repetir o aviso.
+  const avisoFile = './data/aviso-lista.json';
+  let avisado = false;
+  try { avisado = JSON.parse(fs.readFileSync(avisoFile, 'utf8')).avisado; } catch { /* nunca avisou */ }
+  const marcarAviso = (v) => { avisado = v; fs.writeFileSync(avisoFile, JSON.stringify({ avisado: v })); };
   setInterval(() => {
     const now = new Date();
     if (!insidePostingHours()) return;
@@ -228,6 +277,14 @@ async function main() {
     if (count !== lastLoggedCount) {
       lastLoggedCount = count;
       log(gap ? `Ritmo: 1 post a cada ${gap} min (${count} ofertas na lista).` : 'Lista de ofertas vazia.');
+    }
+    if (count > config.schedule.lowQueueWarning) {
+      if (avisado) marcarAviso(false);
+    } else if (count > 0 && !avisado && notify) {
+      marcarAviso(true);
+      notify(`⚠️ *As ofertas estão acabando!*\nSó ${count === 1 ? 'falta 1' : `faltam ${count}`} para postar.\n\nAbra o painel de afiliados e clique no favorito *📦 Mandar ofertas pro robô*.`)
+        .then(() => log(`Aviso enviado: faltam ${count} ofertas.`))
+        .catch((e) => log('Não consegui mandar o aviso:', e.message));
     }
     if (!gap) {
       remindEmptyQueue(notify).catch(() => {});
@@ -249,7 +306,7 @@ async function main() {
         || lastMorningDay === now.toDateString()) return;
     lastMorningDay = now.toDateString();
     fs.writeFileSync(reminderFile, JSON.stringify({ dia: lastMorningDay }));
-    notify(`☀️ *Bom dia! Hora de puxar as ofertas de hoje.*\n\n1️⃣ Abra o painel de afiliados: https://www.mercadolivre.com.br/afiliados/hub\n2️⃣ Ligue o filtro *Mais vendidos*\n3️⃣ Clique no favorito *📦 Mandar ofertas pro robô*\n\nOfertas esperando na lista agora: ${queue.size()}`)
+    notify(`☀️ *Bom dia! Hora de puxar as ofertas de hoje.*\n\n1️⃣ Abra o painel de afiliados: https://www.mercadolivre.com.br/afiliados/hub\n2️⃣ Ligue o filtro *Mais vendidos*\n3️⃣ Clique no favorito *📦 Mandar ofertas pro robô*\n\nOfertas prontas para postar agora: ${pendingCount(queue, store)}`)
       .then(() => log('Lembrete de bom dia enviado.'))
       .catch((e) => log('Não consegui mandar o lembrete:', e.message));
   }, 60_000);

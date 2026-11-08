@@ -92,7 +92,7 @@ window.addEventListener('message', async (e) => {
   try {
     const r = await fetch('/fila', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ itens: e.data.itens }) });
     const j = await r.json();
-    s.innerHTML = '<span class="ok">✅ Pronto! O robô recebeu ' + j.validos + ' ofertas (' + j.novos + ' novas).</span><br>Na fila para postar: ' + j.naFila + '<br><br>Pode fechar esta janela.';
+    s.innerHTML = '<span class="ok">✅ Pronto! O robô recebeu ' + j.validos + ' ofertas (' + j.novos + ' novas).</span><br>Em instantes chega no seu WhatsApp a lista das que podem ser postadas.<br><br>Pode fechar esta janela.';
   } catch (err) {
     s.innerHTML = '<span class="erro">❌ Não consegui entregar para o robô: ' + err.message + '</span>';
   }

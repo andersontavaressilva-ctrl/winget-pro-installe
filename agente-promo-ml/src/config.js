@@ -57,6 +57,8 @@ export const config = {
     endHour: num(process.env.POST_END_HOUR, 22),
     // Produto repetido volta depois desses dias (ou antes, se o preço baixar).
     repostAfterDays: num(process.env.REPOST_AFTER_DAYS, 2),
+    // Avisa no WhatsApp quando sobrarem essa quantidade de ofertas para postar (ou menos).
+    lowQueueWarning: num(process.env.LOW_QUEUE_WARNING, 3),
     // Hora do lembrete de bom dia para puxar as ofertas (24h).
     reminderHour: num(process.env.REMINDER_HOUR, 8),
     // Enquanto for "false", o robô só mostra os posts no registro (modo teste).
