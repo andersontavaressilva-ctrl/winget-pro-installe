@@ -1,0 +1,11 @@
+{
+  "appId": "com.cineflow.app",
+  "appName": "CineFlow",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": true
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "_info": "Catálogo de demonstração com obras de licença aberta (Blender Foundation, CC-BY). Substitua ou complemente com o seu próprio catálogo em Ajustes.",
+  "movies": [
+    {
+      "id": "big-buck-bunny",
+      "title": "Big Buck Bunny",
+      "year": 2008,
+      "duration": "10 min",
+      "genres": ["Animação", "Comédia"],
+      "rating": "Livre",
+      "description": "Um coelho gigante e bondoso decide dar uma lição em três roedores valentões que atormentam os animais da floresta.",
+      "poster": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg",
+      "backdrop": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg",
+      "src": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+      "featured": true
+    },
+    {
+      "id": "sintel",
+      "title": "Sintel",
+      "year": 2010,
+      "duration": "15 min",
+      "genres": ["Animação", "Aventura", "Fantasia"],
+      "rating": "12",
+      "description": "Uma jovem guerreira atravessa terras perigosas em busca do filhote de dragão que ela salvou e perdeu.",
+      "poster": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/Sintel.jpg",
+      "backdrop": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/Sintel.jpg",
+      "src": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
+      "featured": true
+    },
+    {
+      "id": "tears-of-steel",
+      "title": "Tears of Steel",
+      "year": 2012,
+      "duration": "12 min",
+      "genres": ["Ficção científica", "Ação"],
+      "rating": "12",
+      "description": "Em Amsterdã do futuro, um grupo de cientistas tenta salvar o mundo de robôs destrutivos reencenando um momento do passado.",
+      "poster": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/TearsOfSteel.jpg",
+      "backdrop": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/TearsOfSteel.jpg",
+      "src": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"
+    },
+    {
+      "id": "elephants-dream",
+      "title": "Elephants Dream",
+      "year": 2006,
+      "duration": "11 min",
+      "genres": ["Animação", "Ficção científica"],
+      "rating": "10",
+      "description": "Dois personagens exploram uma máquina gigantesca e surreal, cada um enxergando nela um mundo diferente.",
+      "poster": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ElephantsDream.jpg",
+      "backdrop": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ElephantsDream.jpg",
+      "src": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
+    }
+  ],
+  "series": [
+    {
+      "id": "open-movies",
+      "title": "Projetos Abertos",
+      "year": 2006,
+      "genres": ["Animação", "Antologia"],
+      "rating": "Livre",
+      "description": "Série de demonstração que reúne curtas de licença aberta da Blender Foundation, organizados em temporadas.",
+      "poster": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ElephantsDream.jpg",
+      "backdrop": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/TearsOfSteel.jpg",
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            { "id": "s1e1", "title": "Elephants Dream", "duration": "11 min", "src": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" },
+            { "id": "s1e2", "title": "Big Buck Bunny", "duration": "10 min", "src": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }
+          ]
+        },
+        {
+          "number": 2,
+          "episodes": [
+            { "id": "s2e1", "title": "Sintel", "duration": "15 min", "src": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" },
+            { "id": "s2e2", "title": "Tears of Steel", "duration": "12 min", "src": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" }
+          ]
+        }
+      ]
+    }
+  ],
+  "channels": [
+    {
+      "id": "demo-hls-1",
+      "title": "Canal Demo 1 (HLS)",
+      "group": "Demonstração",
+      "src": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+    },
+    {
+      "id": "demo-hls-2",
+      "title": "Canal Demo 2 (HLS)",
+      "group": "Demonstração",
+      "src": "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8"
+    }
+  ]
+}

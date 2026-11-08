@@ -1,0 +1,33 @@
+{
+  "name": "cineflow",
+  "version": "1.0.0",
+  "private": true,
+  "description": "App de filmes, séries e TV ao vivo para Android TV, celular e computador",
+  "main": "desktop/main.js",
+  "scripts": {
+    "start": "npx --yes serve www -l 8080",
+    "android:init": "npx cap add android && node scripts/patch-android-tv.js",
+    "android:sync": "npx cap sync android && node scripts/patch-android-tv.js",
+    "android:open": "npx cap open android",
+    "desktop": "electron .",
+    "desktop:build": "electron-builder"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/app": "^6.0.1",
+    "@capacitor/core": "^6.1.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2",
+    "electron": "^32.1.2",
+    "electron-builder": "^25.0.5"
+  },
+  "build": {
+    "appId": "com.cineflow.app",
+    "productName": "CineFlow",
+    "files": ["desktop/**", "www/**"],
+    "win": { "target": "nsis" },
+    "mac": { "target": "dmg" },
+    "linux": { "target": "AppImage" }
+  }
+}

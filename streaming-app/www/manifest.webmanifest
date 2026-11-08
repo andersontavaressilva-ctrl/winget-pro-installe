@@ -1,0 +1,14 @@
+{
+  "name": "CineFlow",
+  "short_name": "CineFlow",
+  "description": "Filmes, séries e TV ao vivo",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0d12",
+  "theme_color": "#0b0d12",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
