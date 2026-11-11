@@ -53,7 +53,7 @@ function enderecoNaRede() {
   return '127.0.0.1';
 }
 
-export function startServer({ port, host = '0.0.0.0', queue, onReceive = () => {}, log = console.log }) {
+export function startServer({ port, host = '0.0.0.0', filters, queue, onReceive = () => {}, log = console.log }) {
   const server = http.createServer((req, res) => {
     if (!REDE_DE_CASA.test(req.socket.remoteAddress || '')) {
       res.writeHead(403);
@@ -71,7 +71,7 @@ export function startServer({ port, host = '0.0.0.0', queue, onReceive = () => {
 <p>Ofertas esperando para postar: <b>${queue.size()}</b></p>
 <p><b>Instalar o botão (uma vez só):</b> arraste o botão azul abaixo para a <b>barra de favoritos</b> do Chrome
 (se ela não aparece, aperte <b>Ctrl+Shift+B</b>).</p>
-<p><a class="botao" href="${bookmarkletHref(robo)}">📦 Mandar ofertas pro robô</a></p>
+<p><a class="botao" href="${bookmarkletHref(robo, filters)}">📦 Mandar ofertas pro robô</a></p>
 <p><b>Uso (1 vez por dia):</b></p><ol>
 <li>Abra o <a href="${ML}/afiliados/hub" target="_blank">painel de afiliados</a> e ligue o filtro <b>Mais vendidos</b>.</li>
 <li>Clique no favorito <b>📦 Mandar ofertas pro robô</b> e espere uns 30 segundos.</li>
@@ -92,7 +92,8 @@ window.addEventListener('message', async (e) => {
   try {
     const r = await fetch('/fila', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ itens: e.data.itens }) });
     const j = await r.json();
-    s.innerHTML = '<span class="ok">✅ Pronto! O robô recebeu ' + j.validos + ' ofertas (' + j.novos + ' novas).</span><br>Em instantes chega no seu WhatsApp a lista das que podem ser postadas.<br><br>Pode fechar esta janela.';
+    const pulados = Number(e.data.pulados) ? '<br>Puladas na página por pouco desconto ou preço fora da faixa: ' + Number(e.data.pulados) : '';
+    s.innerHTML = '<span class="ok">✅ Pronto! O robô recebeu ' + j.validos + ' ofertas (' + j.novos + ' novas).</span>' + pulados + '<br>Em instantes chega no seu WhatsApp a lista das que podem ser postadas.<br><br>Pode fechar esta janela.';
   } catch (err) {
     s.innerHTML = '<span class="erro">❌ Não consegui entregar para o robô: ' + err.message + '</span>';
   }

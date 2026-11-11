@@ -252,7 +252,7 @@ async function main() {
         .catch((e) => log('Não consegui mandar o resumo:', e.message));
     }, 90_000);
   };
-  startServer({ port: config.server.port, host: config.server.host, queue, onReceive: agendarResumo, log });
+  startServer({ port: config.server.port, host: config.server.host, filters: config.filters, queue, onReceive: agendarResumo, log });
   if (!config.schedule.postingEnabled) log('MODO TESTE: os posts aparecem só aqui no registro, nada vai para o grupo.');
   // Confere a cada minuto. O espaço entre posts é o tempo que falta até o fim
   // do horário dividido pelas ofertas que ainda tem na lista, assim elas se

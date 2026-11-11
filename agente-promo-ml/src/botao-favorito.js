@@ -6,7 +6,7 @@
 // A função abaixo roda DENTRO da página do Mercado Livre, não no Node.
 
 /* eslint-disable no-undef */
-async function mandarOfertas(ROBO, MAX) {
+async function mandarOfertas(ROBO, MAX, REGRA) {
   if (!/mercadolivre\.com\.br\/afiliados\/hub/.test(location.href)) {
     alert('Abra o painel de afiliados do Mercado Livre (filtro "Mais vendidos") e clique de novo.');
     return;
@@ -57,11 +57,18 @@ async function mandarOfertas(ROBO, MAX) {
   };
 
   const itens = [];
+  let pulados = 0;
   for (const c of [...document.querySelectorAll('li.poly-card')].slice(0, MAX)) {
     const a = c.querySelector('a.poly-component__title');
     const m = /MLB-?(\d+)/i.exec(a ? a.href : '');
     if (!m) continue;
     const id = 'MLB' + m[1];
+    // Pula, sem gerar link, o que o robô não posta de jeito nenhum: pouco desconto ou preço fora da faixa.
+    const disc = (c.querySelector('.poly-price__disc-label') || {}).textContent || '';
+    const price = reais((c.querySelector('.poly-price__current .andes-money-amount') || { getAttribute: () => '' }).getAttribute('aria-label'));
+    const originalPrice = reais((c.querySelector('.andes-money-amount--previous') || { getAttribute: () => '' }).getAttribute('aria-label'));
+    const discount = Number((/(\d+)%/.exec(disc) || [])[1] || (originalPrice && price ? Math.round((1 - price / originalPrice) * 100) : 0));
+    if (discount < REGRA.minDiscount || !price || price < REGRA.minPrice || price > REGRA.maxPrice) { pulados++; continue; }
     const btn = [...c.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Compartilhar');
     if (btn && !links[id]) {
       c.scrollIntoView({ block: 'center' });
@@ -78,11 +85,8 @@ async function mandarOfertas(ROBO, MAX) {
     const src = (img && (img.getAttribute('data-src') || img.src)) || '';
     const texto = c.innerText;
     const labels = [...c.querySelectorAll('.poly-component__review-compacted .polylabel-label')].map((e) => e.textContent.trim());
-    const disc = (c.querySelector('.poly-price__disc-label') || {}).textContent || '';
     const parc = /(\d+)x\s*R\$\s*([\d.]+(?:,\d+)?)\s*(sem juros)?/i.exec(texto);
     const outros = /ou\s*R\$\s*([\d.]+(?:,\d+)?)\s*em outros meios/i.exec(texto);
-    const price = reais((c.querySelector('.poly-price__current .andes-money-amount') || { getAttribute: () => '' }).getAttribute('aria-label'));
-    const originalPrice = reais((c.querySelector('.andes-money-amount--previous') || { getAttribute: () => '' }).getAttribute('aria-label'));
     itens.push({
       id,
       link: links[id],
@@ -91,7 +95,7 @@ async function mandarOfertas(ROBO, MAX) {
       thumbnail: src.startsWith('http') ? src.replace(/\.webp$/, '.jpg') : null,
       price,
       originalPrice,
-      discount: Number((/(\d+)%/.exec(disc) || [])[1] || (originalPrice && price ? Math.round((1 - price / originalPrice) * 100) : 0)),
+      discount,
       pix: /pix/i.test(disc),
       otherMethodsPrice: outros ? brl(outros[1]) : null,
       installments: parc ? { quantity: Number(parc[1]), amount: brl(parc[2]), rate: parc[3] ? 0 : 1 } : null,
@@ -107,7 +111,7 @@ async function mandarOfertas(ROBO, MAX) {
   let ok = false;
   window.addEventListener('message', (e) => { if (e.origin === ROBO && e.data && e.data.tipo === 'recebido') ok = true; });
   for (let t = 0; t < 40 && !ok; t++) {
-    janela.postMessage({ tipo: 'ofertas', itens }, ROBO);
+    janela.postMessage({ tipo: 'ofertas', itens, pulados }, ROBO);
     await sleep(500);
   }
   if (!ok) alert('Não consegui entregar as ofertas para o robô. O computador do robô está ligado?');
@@ -115,7 +119,10 @@ async function mandarOfertas(ROBO, MAX) {
 /* eslint-enable no-undef */
 
 // robo: endereço do robô, ex.: http://192.168.3.158:3999
-export function bookmarkletHref(robo, max = 20) {
-  const code = `(${mandarOfertas.toString()})(${JSON.stringify(robo)}, ${max})`;
+// regra: { minDiscount, minPrice, maxPrice } do .env; o botão já pula o que não passa.
+// Mudou a regra no .env? O favorito precisa ser arrastado de novo.
+export function bookmarkletHref(robo, regra, max = 60) {
+  const r = { minDiscount: regra.minDiscount, minPrice: regra.minPrice, maxPrice: regra.maxPrice };
+  const code = `(${mandarOfertas.toString()})(${JSON.stringify(robo)}, ${max}, ${JSON.stringify(r)})`;
   return 'javascript:' + encodeURIComponent(code);
 }
