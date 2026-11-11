@@ -74,7 +74,7 @@ export function startServer({ port, host = '0.0.0.0', filters, queue, onReceive 
 <p><a class="botao" href="${bookmarkletHref(robo, filters)}">📦 Mandar ofertas pro robô</a></p>
 <p><b>Uso (1 vez por dia):</b></p><ol>
 <li>Abra o <a href="${ML}/afiliados/hub" target="_blank">painel de afiliados</a> e ligue o filtro <b>Mais vendidos</b>.</li>
-<li>Clique no favorito <b>📦 Mandar ofertas pro robô</b> e espere uns 30 segundos.</li>
+<li>Clique no favorito <b>📦 Mandar ofertas pro robô</b> e espere uns 2 minutos (ele desce a página sozinho para carregar mais produtos).</li>
 <li>Uma janelinha confirma quantas ofertas o robô recebeu.</li></ol>`));
       return;
     }

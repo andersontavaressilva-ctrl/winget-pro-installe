@@ -56,6 +56,17 @@ async function mandarOfertas(ROBO, MAX, REGRA) {
     return m ? Math.round(brl(m[1]) * (m[2] ? 1000 : 1)) : null;
   };
 
+  // O painel mostra só uns 18 produtos e carrega mais quando a página desce até
+  // o fim. Desce algumas vezes até ter MAX produtos ou parar de aparecer novos.
+  const cartoes = () => document.querySelectorAll('li.poly-card').length;
+  for (let t = 0, parado = 0; t < 20 && cartoes() < MAX && parado < 2; t++) {
+    const antes = cartoes();
+    window.scrollTo(0, document.body.scrollHeight);
+    await sleep(1500 + Math.random() * 500);
+    parado = cartoes() > antes ? 0 : parado + 1;
+  }
+  window.scrollTo(0, 0);
+
   const itens = [];
   let pulados = 0;
   for (const c of [...document.querySelectorAll('li.poly-card')].slice(0, MAX)) {
