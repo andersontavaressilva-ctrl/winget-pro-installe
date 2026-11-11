@@ -4,16 +4,24 @@ import path from 'node:path';
 // Lista de ofertas esperando para serem postadas. Ela é enchida pelo botão
 // "Mandar ofertas pro robô" (clicado no painel de afiliados) e esvaziada aos
 // poucos pelo robô, um post por vez.
-export function createQueue(file = './data/fila.json', maxAgeHours = 36) {
+export function createQueue(file = './data/fila.json', endHour = 22) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   let items = [];
   try { items = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { /* primeiro uso */ }
   const save = () => fs.writeFileSync(file, JSON.stringify(items, null, 2));
-  // Preço muda rápido: oferta velha sai da lista sem ser postada.
+  // Preço muda rápido: oferta velha sai da lista sem ser postada. Ela vale até o
+  // fim do horário de postagem do dia seguinte ao que chegou; assim nenhuma vence
+  // no meio do dia e o ritmo calculado de manhã dura até a noite.
+  const validade = (i) => {
+    const d = new Date(i.receivedAt);
+    d.setDate(d.getDate() + 1);
+    d.setHours(endHour, 0, 0, 0);
+    return d.getTime();
+  };
   const fresh = () => {
-    const limit = Date.now() - maxAgeHours * 3_600_000;
+    const now = Date.now();
     const before = items.length;
-    items = items.filter((i) => i.receivedAt >= limit);
+    items = items.filter((i) => now < validade(i));
     if (items.length !== before) save();
   };
 

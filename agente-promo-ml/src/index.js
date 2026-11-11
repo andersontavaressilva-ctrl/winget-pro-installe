@@ -174,7 +174,7 @@ let postDeal;
 
 async function main() {
   const store = createStore();
-  const queue = createQueue();
+  const queue = createQueue(undefined, config.schedule.endHour);
   let getChat = null;
   let notify = null;
   let status = null;
