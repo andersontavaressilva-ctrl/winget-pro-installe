@@ -23,9 +23,15 @@ Por isso as ofertas vêm de um clique do Anderson no navegador dele:
 3. O favorito clica em "Compartilhar" de cada produto, pega o link curto **meli.la** da conta dele,
    lê preço, desconto, parcelas, nota e vendas, e manda tudo para `data/fila.json` (`src/fila.js`).
 
+4. Um minuto e meio depois do último clique, o robô manda no WhatsApp do Anderson a lista de todas as ofertas
+   que podem ser postadas e quantas ficaram de fora, com o motivo.
+5. Quando sobram 3 ofertas ou menos para postar (`LOW_QUEUE_WARNING`), ele avisa uma vez que estão acabando.
+
 ## Como posta
 - `src/index.js` confere a cada minuto. Das 8h às 22h, divide o tempo que falta pelas ofertas da lista
   (entre 20 e 120 min por post). O primeiro do dia sai às 8h. Religar não gera posts colados.
+- Cada oferta vale até as 22h do dia seguinte ao que chegou (`src/fila.js`); assim nenhuma vence
+  no meio do dia e a conta do ritmo não fica furada.
 - Escolhe a melhor oferta pela nota (`src/scorer.js`, `MIN_SCORE`), sem repetir produto por 2 dias,
   a não ser que o preço tenha baixado (`data/postados.json` guarda quando e por quanto postou).
 - Texto no modelo que o Anderson mandou (`src/message.js`).
